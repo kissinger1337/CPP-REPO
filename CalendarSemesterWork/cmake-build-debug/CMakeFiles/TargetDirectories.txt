@@ -1,0 +1,3 @@
+/home/kissinger/CLionProjects/dudkiale/Semester work/cmake-build-debug/CMakeFiles/Semester_work.dir
+/home/kissinger/CLionProjects/dudkiale/Semester work/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/kissinger/CLionProjects/dudkiale/Semester work/cmake-build-debug/CMakeFiles/rebuild_cache.dir

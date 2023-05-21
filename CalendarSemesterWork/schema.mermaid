@@ -1,0 +1,137 @@
+classDiagram
+    class CUserInterface{
+        +m_State int
+        +CUserInterface()
+        +printInterface() bool
+        +void begin()
+    }
+
+    class CIntegerGetter{
+        +getFromUser()$ int
+    }
+
+    class CStringGetter{
+        +getFromUser()$ string
+    }
+
+    class CApp{
+        +CApp()
+        +CUserInterface m_UserInterface
+        +run() void
+    }
+
+    class CConfigFile{
+        <<Abstract>> CConfigFile
+        +export(vector~CEvent~ Events, string path)* bool
+        +import(string path)* bool
+    }
+
+    class CFileICS{
+        +export(vector~CEvent~ Events, string path) bool
+        +import(string path) bool
+    }
+    CConfigFile <|-- CFileICS
+
+    class CFileVCS{
+        +export(vector~CEvent~ Events, string path) bool
+        +import(string path) bool
+    }
+
+    CConfigFile <|-- CFileVCS
+
+    class CAppParameters{
+        +int m_MaxDuration$
+        +int m_MinDuration$
+        +int m_MinYear$
+        +int m_MaxYear$
+        +string m_NamesOfDays[8]
+        +int m_Days[13]$
+        +string m_MonthList[13]
+        +string mailEnding
+    }
+
+    class CDate{
+        +int m_Day
+        +int m_Month
+        +int m_Year
+        +int m_Hour
+        +CDate()
+        +print() void
+        +operator<\<()std::ostream &
+        +todayDate()$ CDate
+        +getFirstDayOfMonth() int
+        +isLeapYear() bool
+        +checkDate() bool
+        +getFromUser() void
+        +checkInputString(string) bool
+        +normaliseInput(string) string
+        +getDayOfWeek(int, int, int)$ int
+    }
+
+    class CEvent{
+        +String m_EventName
+        +CDate date
+        +int m_Duration
+        +bool m_isEveryDay
+        +String m_Place
+        +vector~string~ m_Participants
+        +vector~string~ m_Tags
+        +String m_Description
+        +CAppParameters m_AppParameters
+
+        +CEvent()
+        +print()* void
+    }
+
+    class COneTimeEvent {
+        +COneTimeEvent()
+        +print() void
+    }
+
+    CEvent <|-- COneTimeEvent
+
+    class CRepeatingEvent {
+        +COneTimeEvent()
+        +print() void
+    }
+
+    CEvent <|-- CRepeatingEvent
+
+
+class CCalendar{
+        <<Abstract>> CConfigFile
+        +CDate m_Date
+        +CAppParameters m_AppParameters
+        +printCalendar()* void
+        +listCalendar()* void
+        +CCalendar()
+        +getMonthName() string
+        addEvent() bool
+        addEvent() bool
+        +findEvents() vector~CEvent~
+    }
+
+    class CDayCalendar{
+        +CDayCalendar()
+        +printCalendar() void
+        +listCalendar() void
+    }
+    CCalendar <|-- CDayCalendar
+
+    class CWeekCalendar{
+        +CDayCalendar()
+        +printCalendar() void
+        +listCalendar() void
+    }
+    CCalendar <|-- CWeekCalendar
+
+    class CMonthCalendar{
+        +CDayCalendar()
+        +printCalendar() void
+        +listCalendar() void
+    }
+    CCalendar <|-- CMonthCalendar
+
+
+
+
