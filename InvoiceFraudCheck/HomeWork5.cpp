@@ -11,12 +11,7 @@
 #include <list>
 #include <set>
 #include <deque>
-#include <algorithm>
-#include <unordered_map>
-#include <unordered_set>
 #include <memory>
-#include <iterator>
-#include <functional>
 
 //-------------------------------------------------------------------------------------------------
 /**
@@ -176,11 +171,11 @@ public:
         return m_date;
     }
 
-    std::string buyer() const {
+    const std::string & buyer() const {
         return m_buyer;
     }
 
-    std::string seller() const {
+    const std::string & seller() const {
         return m_seller;
     }
 
@@ -208,11 +203,11 @@ private:
 };
 //---------------------------------------------------------------------------------------------
 /**
- * @brief Functor for set<CInvoice, cinvoiceCmp>> in CVATRegister
+ * @brief Functor for set<CInvoice, CInvoiceCmp>> in CVATRegister
  *  It compares two invoices based on their attributes.
  *  The order of attributes is: date, seller, buyer, amount, vat.
  */
-class cinvoiceCmp {
+class CInvoiceCmp {
 public:
     bool operator()(const CInvoice &x, const CInvoice &y) const {
         if (x.date().compare(y.date()) != 0) {
@@ -317,15 +312,16 @@ public:
 private:
     std::vector<std::pair<int, bool>> m_SortKeys;
 };
+
 //---------------------------------------------------------------------------------------------
-class companiesNamesNormaliser {
+class CCompaniesNamesNormaliser {
 public:
     CInvoice m_IssuedInvoice;
     std::map<std::string, std::string> m_RegisteredCompanies;
-    companiesNamesNormaliser(const CInvoice & invoice, const std::map<std::string, std::string> & RegisteredCompanies):
-                                                                    m_IssuedInvoice(invoice),
-                                                                    m_RegisteredCompanies(RegisteredCompanies)
-                                                                    {};
+
+    CCompaniesNamesNormaliser(const CInvoice &invoice, const std::map<std::string, std::string> &RegisteredCompanies) :
+            m_IssuedInvoice(invoice),
+            m_RegisteredCompanies(RegisteredCompanies) {};
 
     std::string m_NormalisedSeller = normalise(m_IssuedInvoice.seller());
     std::string m_NormalisedBuyer = normalise(m_IssuedInvoice.buyer());
@@ -361,6 +357,7 @@ public:
         m_RegisteredCompaniesNormalised[name] = normalisedName;
         return true;
     }
+
 //---------------------------------------------------------------------------------------------
     bool checkValidityOfSellerAndBuyer(std::string &normalisedSeller, std::string &normalisedBuyer,
                                        std::string &offSellerName, std::string &offBuyerName) const {
@@ -379,7 +376,7 @@ public:
         auto setOfInvoices = m_AddedIssuedAndAccepted.find(normalisedName);
         //if company is not in the map, insert the company and create set of invoices for it
         if (setOfInvoices == m_AddedIssuedAndAccepted.end()) {
-            m_AddedIssuedAndAccepted.insert({normalisedName, std::set<CInvoice, cinvoiceCmp>({InvoiceOffName})});
+            m_AddedIssuedAndAccepted.insert({normalisedName, std::set<CInvoice, CInvoiceCmp>({InvoiceOffName})});
         }
             //if company is in the map
         else {
@@ -420,10 +417,11 @@ public:
         }
         return true;
     }
+
 //---------------------------------------------------------------------------------------------
     bool addIssued(const CInvoice &issuedInvoice) {
         //class that normalises names and finds official names, that were given when registering companies
-        companiesNamesNormaliser names(issuedInvoice, m_RegisteredCompanies);
+        CCompaniesNamesNormaliser names(issuedInvoice, m_RegisteredCompanies);
 
         if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer,
                                            names.m_OffSellerName, names.m_OffBuyerName)) {
@@ -443,10 +441,11 @@ public:
 
         return true;
     }
+
 //---------------------------------------------------------------------------------------------
     bool addAccepted(const CInvoice &acceptedInvoice) {
         //class that normalises names and finds official names, that were given when registering companies
-        companiesNamesNormaliser names(acceptedInvoice, m_RegisteredCompanies);
+        CCompaniesNamesNormaliser names(acceptedInvoice, m_RegisteredCompanies);
         if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer,
                                            names.m_OffSellerName, names.m_OffBuyerName)) {
             return false;
@@ -545,9 +544,10 @@ public:
  */
     bool delIssued(const CInvoice &issuedInvoice) {
         //class that normalises names and finds official names, that were given when registering companies
-        companiesNamesNormaliser names(issuedInvoice, m_RegisteredCompanies);
+        CCompaniesNamesNormaliser names(issuedInvoice, m_RegisteredCompanies);
 
-        if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer, names.m_OffSellerName, names.m_OffBuyerName)) {
+        if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer, names.m_OffSellerName,
+                                           names.m_OffBuyerName)) {
             return false;
         }
 
@@ -565,13 +565,15 @@ public:
  */
     bool delAccepted(const CInvoice &acceptedInvoice) {
         //class that normalises names and finds official names, that were given when registering companies
-        companiesNamesNormaliser names(acceptedInvoice, m_RegisteredCompanies);
+        CCompaniesNamesNormaliser names(acceptedInvoice, m_RegisteredCompanies);
 
-        if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer, names.m_OffSellerName, names.m_OffBuyerName)) {
+        if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer, names.m_OffSellerName,
+                                           names.m_OffBuyerName)) {
             return false;
         }
         if (!delAcceptedInvoice(names.m_NormalisedBuyer, acceptedInvoice, names.m_OffSellerName, names.m_OffBuyerName)
-            || !delAcceptedInvoice(names.m_NormalisedSeller, acceptedInvoice, names.m_OffSellerName, names.m_OffBuyerName))
+            ||
+            !delAcceptedInvoice(names.m_NormalisedSeller, acceptedInvoice, names.m_OffSellerName, names.m_OffBuyerName))
             return false;
 
         return true;
@@ -605,9 +607,10 @@ public:
 private:
     std::map<std::string, std::string> m_RegisteredCompanies;           // key = normalised name, value = original name
     std::map<std::string, std::string> m_RegisteredCompaniesNormalised; // key = original name, value = normalised name
-    std::map<std::string, std::set<CInvoice, cinvoiceCmp>> m_AddedIssuedAndAccepted;
+    std::map<std::string, std::set<CInvoice, CInvoiceCmp>> m_AddedIssuedAndAccepted;
     int m_InvoiceNumber = 0;
 };
+
 //---------------------------------------------------------------------------------------------
 bool equalLists(const std::list<CInvoice> &a, const std::list<CInvoice> &b) {
     if (a.size() != b.size())
@@ -622,23 +625,24 @@ bool equalLists(const std::list<CInvoice> &a, const std::list<CInvoice> &b) {
     }
     return true;
 }
+
 //---------------------------------------------------------------------------------------------
 int main() {
 
-    assert(normalise("a")=="a");
-    assert(normalise("a      ")=="a");
-    assert(normalise(" a")=="a");
-    assert(normalise("A")=="a");
-    assert(normalise("A ")=="a");
-    assert(normalise(" A")=="a");
-    assert(normalise("    a    ")=="a");
-    assert(normalise("a b")=="a b");
-    assert(normalise("a b")=="a b");
-    assert(normalise("a b ")=="a b");
-    assert(normalise(" a b")=="a b");
-    assert(normalise(" a b ")=="a b");
-    assert(normalise("a     b")=="a b");
-    assert(normalise("    a    b   cd ")=="a b cd");
+    assert(normalise("a") == "a");
+    assert(normalise("a      ") == "a");
+    assert(normalise(" a") == "a");
+    assert(normalise("A") == "a");
+    assert(normalise("A ") == "a");
+    assert(normalise(" A") == "a");
+    assert(normalise("    a    ") == "a");
+    assert(normalise("a b") == "a b");
+    assert(normalise("a b") == "a b");
+    assert(normalise("a b ") == "a b");
+    assert(normalise(" a b") == "a b");
+    assert(normalise(" a b ") == "a b");
+    assert(normalise("a     b") == "a b");
+    assert(normalise("    a    b   cd ") == "a b cd");
     CVATRegister test;
     assert(test.registerCompany("a   "));
     assert(test.registerCompany("  b"));
