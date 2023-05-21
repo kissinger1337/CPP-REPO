@@ -314,21 +314,6 @@ private:
 };
 
 //---------------------------------------------------------------------------------------------
-class CCompaniesNamesNormaliser {
-public:
-    CInvoice m_IssuedInvoice;
-    std::map<std::string, std::string> m_RegisteredCompanies;
-
-    CCompaniesNamesNormaliser(const CInvoice &invoice, const std::map<std::string, std::string> &RegisteredCompanies) :
-            m_IssuedInvoice(invoice),
-            m_RegisteredCompanies(RegisteredCompanies) {};
-
-    std::string m_NormalisedSeller = normalise(m_IssuedInvoice.seller());
-    std::string m_NormalisedBuyer = normalise(m_IssuedInvoice.buyer());
-    std::string m_OffBuyerName = m_RegisteredCompanies[m_NormalisedBuyer];      //official buyer name
-    std::string m_OffSellerName = m_RegisteredCompanies[m_NormalisedSeller];    //official seller name
-};
-//---------------------------------------------------------------------------------------------
 /**
  * @brief Class for registering companies and invoices
  *
@@ -420,22 +405,24 @@ public:
 
 //---------------------------------------------------------------------------------------------
     bool addIssued(const CInvoice &issuedInvoice) {
-        //class that normalises names and finds official names, that were given when registering companies
-        CCompaniesNamesNormaliser names(issuedInvoice, m_RegisteredCompanies);
+        std::string m_NormalisedSeller = normalise(issuedInvoice.seller());
+        std::string m_NormalisedBuyer = normalise(issuedInvoice.buyer());
+        std::string m_OffBuyerName = m_RegisteredCompanies[m_NormalisedBuyer];      //official buyer name
+        std::string m_OffSellerName = m_RegisteredCompanies[m_NormalisedSeller];    //official seller name
 
-        if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer,
-                                           names.m_OffSellerName, names.m_OffBuyerName)) {
+        if (!checkValidityOfSellerAndBuyer(m_NormalisedSeller, m_NormalisedBuyer,
+                                           m_OffSellerName, m_OffBuyerName)) {
             return false;
         }
 
         //create issued invoice with official names
-        CInvoice issuedInvoiceOffName(issuedInvoice.date(), names.m_OffSellerName, names.m_OffBuyerName,
+        CInvoice issuedInvoiceOffName(issuedInvoice.date(), m_OffSellerName, m_OffBuyerName,
                                       issuedInvoice.amount(), issuedInvoice.vat(), true, false, m_InvoiceNumber++);
 
 
         //insert invoice into map of issued and accepted invoices for each buyer and seller
-        if (!insertInvoice(issuedInvoiceOffName, names.m_NormalisedSeller) ||
-            !insertInvoice(issuedInvoiceOffName, names.m_NormalisedBuyer)) {
+        if (!insertInvoice(issuedInvoiceOffName, m_NormalisedSeller) ||
+            !insertInvoice(issuedInvoiceOffName, m_NormalisedBuyer)) {
             return false;
         }
 
@@ -444,21 +431,24 @@ public:
 
 //---------------------------------------------------------------------------------------------
     bool addAccepted(const CInvoice &acceptedInvoice) {
-        //class that normalises names and finds official names, that were given when registering companies
-        CCompaniesNamesNormaliser names(acceptedInvoice, m_RegisteredCompanies);
-        if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer,
-                                           names.m_OffSellerName, names.m_OffBuyerName)) {
+        std::string m_NormalisedSeller = normalise(acceptedInvoice.seller());
+        std::string m_NormalisedBuyer = normalise(acceptedInvoice.buyer());
+        std::string m_OffBuyerName = m_RegisteredCompanies[m_NormalisedBuyer];      //official buyer name
+        std::string m_OffSellerName = m_RegisteredCompanies[m_NormalisedSeller];    //official seller name
+
+        if (!checkValidityOfSellerAndBuyer(m_NormalisedSeller, m_NormalisedBuyer,
+                                           m_OffSellerName, m_OffBuyerName)) {
             return false;
         }
 
         //create accepted invoice with official names
-        CInvoice issuedInvoiceOffName(acceptedInvoice.date(), names.m_OffSellerName, names.m_OffBuyerName,
+        CInvoice issuedInvoiceOffName(acceptedInvoice.date(), m_OffSellerName, m_OffBuyerName,
                                       acceptedInvoice.amount(), acceptedInvoice.vat(),
                                       false, true, m_InvoiceNumber++);
 
         //insert invoice into map of issued and accepted invoices for each buyer and seller
-        if (!insertInvoice(issuedInvoiceOffName, names.m_NormalisedSeller) ||
-            !insertInvoice(issuedInvoiceOffName, names.m_NormalisedBuyer)) {
+        if (!insertInvoice(issuedInvoiceOffName, m_NormalisedSeller) ||
+            !insertInvoice(issuedInvoiceOffName, m_NormalisedBuyer)) {
             return false;
         }
         return true;
@@ -543,16 +533,18 @@ public:
  * @return whether the invoice was found and deleted
  */
     bool delIssued(const CInvoice &issuedInvoice) {
-        //class that normalises names and finds official names, that were given when registering companies
-        CCompaniesNamesNormaliser names(issuedInvoice, m_RegisteredCompanies);
+        std::string m_NormalisedSeller = normalise(issuedInvoice.seller());
+        std::string m_NormalisedBuyer = normalise(issuedInvoice.buyer());
+        std::string m_OffBuyerName = m_RegisteredCompanies[m_NormalisedBuyer];      //official buyer name
+        std::string m_OffSellerName = m_RegisteredCompanies[m_NormalisedSeller];    //official seller name
 
-        if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer, names.m_OffSellerName,
-                                           names.m_OffBuyerName)) {
+        if (!checkValidityOfSellerAndBuyer(m_NormalisedSeller, m_NormalisedBuyer, m_OffSellerName,
+                                           m_OffBuyerName)) {
             return false;
         }
 
-        if (!delIssuedInvoice(names.m_NormalisedBuyer, issuedInvoice, names.m_OffSellerName, names.m_OffBuyerName) ||
-            !delIssuedInvoice(names.m_NormalisedSeller, issuedInvoice, names.m_OffSellerName, names.m_OffBuyerName)) {
+        if (!delIssuedInvoice(m_NormalisedBuyer, issuedInvoice, m_OffSellerName, m_OffBuyerName) ||
+            !delIssuedInvoice(m_NormalisedSeller, issuedInvoice, m_OffSellerName, m_OffBuyerName)) {
             return false;
         }
         return true;
@@ -564,16 +556,18 @@ public:
  * @return whether the invoice was found and deleted
  */
     bool delAccepted(const CInvoice &acceptedInvoice) {
-        //class that normalises names and finds official names, that were given when registering companies
-        CCompaniesNamesNormaliser names(acceptedInvoice, m_RegisteredCompanies);
+        std::string m_NormalisedSeller = normalise(acceptedInvoice.seller());
+        std::string m_NormalisedBuyer = normalise(acceptedInvoice.buyer());
+        std::string m_OffBuyerName = m_RegisteredCompanies[m_NormalisedBuyer];      //official buyer name
+        std::string m_OffSellerName = m_RegisteredCompanies[m_NormalisedSeller];    //official seller name
 
-        if (!checkValidityOfSellerAndBuyer(names.m_NormalisedSeller, names.m_NormalisedBuyer, names.m_OffSellerName,
-                                           names.m_OffBuyerName)) {
+        if (!checkValidityOfSellerAndBuyer(m_NormalisedSeller, m_NormalisedBuyer, m_OffSellerName,
+                                           m_OffBuyerName)) {
             return false;
         }
-        if (!delAcceptedInvoice(names.m_NormalisedBuyer, acceptedInvoice, names.m_OffSellerName, names.m_OffBuyerName)
+        if (!delAcceptedInvoice(m_NormalisedBuyer, acceptedInvoice, m_OffSellerName, m_OffBuyerName)
             ||
-            !delAcceptedInvoice(names.m_NormalisedSeller, acceptedInvoice, names.m_OffSellerName, names.m_OffBuyerName))
+            !delAcceptedInvoice(m_NormalisedSeller, acceptedInvoice, m_OffSellerName, m_OffBuyerName))
             return false;
 
         return true;
