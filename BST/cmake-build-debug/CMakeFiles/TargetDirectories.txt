@@ -1,0 +1,3 @@
+/home/fitslave/code/CPP-REPO/BST/cmake-build-debug/CMakeFiles/MyBST.dir
+/home/fitslave/code/CPP-REPO/BST/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/fitslave/code/CPP-REPO/BST/cmake-build-debug/CMakeFiles/rebuild_cache.dir
