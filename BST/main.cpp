@@ -19,10 +19,14 @@ public:
     void print();
 
 private:
+    /**
+     * @brief struct representing a single node in a tree
+     */
     struct TNode{
+
+        TNode * m_L; /**< Pointer to a node that has smaller value. */
+        TNode * m_R; /**< Pointer to a node that has bigger value.  */
         int m_Val;
-        TNode * m_L;
-        TNode * m_R;
 
         TNode(int x) : m_L(nullptr), m_R(nullptr), m_Val(x) {};
         TNode(const TNode & other);
@@ -33,8 +37,9 @@ private:
     bool insert(TNode **n, int x);
     bool destroy(TNode **n, int x);
 
+    TNode * m_Head; /**< **/
     size_t m_Size;
-    TNode * m_Head;
+
 
     bool find(TNode ** n , int x);
 };
@@ -110,21 +115,36 @@ bool CBST::addNode(int x) {
         return false;
 }
 
+/**
+ * @param n pointer to a place in a tree (can point to null if there is no node at the moment)
+ * @param x value to be added
+ * @return successful/unsuccessful adding
+ */
 bool CBST::insert(CBST::TNode **n, int x) {
+    /*  The recursion traverses the tree and finds the position in the tree, where the new value
+    * belongs to. However, we shall remember the position "where to put the address of the newly added
+    * node". Thus, only the address of the pointer is insufficient, we need to use ** pointer.
+    *
+    * Please note this works fine for the root node to.
+    */
+
+    //found a place to put new value - insert it
     if(!(*n)){
         (*n) = new TNode(x);
         return true;
     }
 
+    //value is already present in the tree
     if((*n)->m_Val == x){
         return false;
     }
 
+    //recursively go further down the tree
     if((*n)->m_Val > x){
-        insert(&((*n)->m_L),x);
+        return insert(&((*n)->m_L),x);
     }
     else {
-        insert(&((*n)->m_R),x);
+        return insert(&((*n)->m_R),x);
     }
 }
 
@@ -146,10 +166,10 @@ bool CBST::find(CBST::TNode ** n, int x) {
     }
 
     if((*n)->m_Val > x){
-        find(&((*n)->m_L),x);
+        return find(&((*n)->m_L),x);
     }
     else{
-        find(&((*n)->m_R),x);
+        return find(&((*n)->m_R),x);
     }
 }
 
