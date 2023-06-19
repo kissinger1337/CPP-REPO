@@ -16,7 +16,7 @@ public:
 
     std::map<std::pair<std::string, std::string>, std::string> getAllConnections() const; /**< Getter used only for testing */
 
-    bool find (const std::string & from, const std::string & to);
+    int find (const std::string & from, const std::string & to) const;
 
 private:
     bool readOneFile(const std::string &);
@@ -62,41 +62,32 @@ std::map<std::pair<std::string, std::string>, std::string> CPublicTransport::get
     return m_AllConnections;
 }
 
-bool CPublicTransport::find(const std::string &from, const std::string &to) {
-    if(from == to) return true;
+int CPublicTransport::find(const std::string &from, const std::string &to) const{
+    if(from == to) return 0;
 
     std::queue<std::string> toVisit;
-    std::set  <std::string> visited;
+    std::map<std::string,int> visited;
 
     toVisit.push(from);
-    visited.insert(from);
+    visited.emplace(from,0);
 
-    while(!toVisit.empty()){
+    while(!toVisit.empty())
+    {
         std::string f = toVisit.front();
         toVisit.pop();
-
-/*        for(const auto & it : m_AllConnections){
-            if(it.first.first == f && visited.find(it.first.second) == visited.end() ){
-                toVisit.push(it.first.second);
-            }
-            visited.insert(f);
-        }*/
+        int count = visited [f];
 
         for(auto it = m_AllConnections.lower_bound(std::make_pair(f,""));
             it!=m_AllConnections.end() && it->first.first == f; ++it){
 
-            if(visited.find(it->first.second) == visited.end())
+            if(visited.count(it->first.second) == 0) {
+                visited.emplace(it->first.second, count + 1);
                 toVisit.push(it->first.second);
-
-            visited.insert(f);
-            if(it->second == to){
-                std::queue<std::string> empty_queue;
-                std::swap (toVisit, empty_queue);
-                break;
             }
         }
     }
-    return visited.count(to) == 1;
+
+    return visited . count ( to ) == 1 ? visited [ to ] : -1;
 
 }
 
@@ -114,9 +105,10 @@ int main() {
     assert((allConnectionsA.find({"Ládví", "Háje"}))->second == "C");
     assert(allConnectionsA.find({"Dejvická","Háje"}) == allConnectionsA.end());
 
-    assert(a.find("Dejvická","Háje") == true);
-    assert(a.find("Dejvická","Anděl") == true);
-    assert(a.find("Dejvická","Ne existuje") == false);
+    assert(a.find("Dejvická","Depo Hostivař") == 1);
+    assert(a.find("Dejvická","Háje") == 2);
+    assert(a.find("Dejvická","Anděl") == 2);
+    assert(a.find("Dejvická","Ne existuje") == -1);
 
     return 0;
 }
