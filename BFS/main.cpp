@@ -8,7 +8,7 @@
 #include <queue>
 
 /**
- * @brief class representing public transport lines. Contains functions to read from a file and find the shortest path using BFS.
+ * @brief class representing public transport lines. Contains functions to read from a directory and find the shortest path using BFS.
  */
 class CPublicTransport{
 public:
@@ -66,7 +66,8 @@ int CPublicTransport::find(const std::string &from, const std::string &to) const
     if(from == to) return 0;
 
     std::queue<std::string> toVisit;
-    std::map<std::string,int> visited;
+    //     station name  amount of links needed to get there
+    std::map<std::string,    int> visited;
 
     toVisit.push(from);
     visited.emplace(from,0);
@@ -75,11 +76,19 @@ int CPublicTransport::find(const std::string &from, const std::string &to) const
     {
         std::string f = toVisit.front();
         toVisit.pop();
+        //count is an amount of links it takes to get there
         int count = visited [f];
 
+        //lower_bound returns position in our map that has first equal or greater pair of source and destination
+        //we will iterate through all of pairs that contain source station, adding all of the destinations
+        //to the visited set (that means we can get there) and to toVisit (because we need to visit all of its neighbours)
+
+        //it->first is a pair of source and destination
+        //it->first.first is a source station
         for(auto it = m_AllConnections.lower_bound(std::make_pair(f,""));
             it!=m_AllConnections.end() && it->first.first == f; ++it){
 
+            //it->first.second is a destination
             if(visited.count(it->first.second) == 0) {
                 visited.emplace(it->first.second, count + 1);
                 toVisit.push(it->first.second);
@@ -87,6 +96,8 @@ int CPublicTransport::find(const std::string &from, const std::string &to) const
         }
     }
 
+    //visited has station that we want to find way to ? return amount of links it takes to get there, else return -1 as
+    //an indicator that there is no path to this station
     return visited . count ( to ) == 1 ? visited [ to ] : -1;
 
 }
