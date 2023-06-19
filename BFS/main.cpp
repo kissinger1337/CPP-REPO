@@ -74,11 +74,26 @@ bool CPublicTransport::find(const std::string &from, const std::string &to) {
     while(!toVisit.empty()){
         std::string f = toVisit.front();
         toVisit.pop();
-        for(const auto & it : m_AllConnections){
+
+/*        for(const auto & it : m_AllConnections){
             if(it.first.first == f && visited.find(it.first.second) == visited.end() ){
                 toVisit.push(it.first.second);
             }
             visited.insert(f);
+        }*/
+
+        for(auto it = m_AllConnections.lower_bound(std::make_pair(f,""));
+            it!=m_AllConnections.end() && it->first.first == f; ++it){
+
+            if(visited.find(it->first.second) == visited.end())
+                toVisit.push(it->first.second);
+
+            visited.insert(f);
+            if(it->second == to){
+                std::queue<std::string> empty_queue;
+                std::swap (toVisit, empty_queue);
+                break;
+            }
         }
     }
     return visited.count(to) == 1;
